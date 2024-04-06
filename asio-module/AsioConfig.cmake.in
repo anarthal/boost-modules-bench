@@ -1,0 +1,19 @@
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(OpenSSL)
+
+function (add_asio_module NAME)
+    set(ROOT @CMAKE_INSTALL_PREFIX@)
+    message("Root is: ${ROOT}")
+    add_library(${NAME})
+    target_include_directories(${NAME} PRIVATE ${ROOT}/include)
+    target_compile_features(${NAME} PUBLIC cxx_std_23)
+    target_compile_options(${NAME} PRIVATE -Wno-include-angled-in-module-purview)
+    target_sources(${NAME}
+        PUBLIC
+            FILE_SET modules_public TYPE CXX_MODULES BASE_DIRS ${ROOT} FILES
+            ${ROOT}/module/asio.cxx
+    )
+    target_link_libraries(${NAME} PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+endfunction()
