@@ -1,20 +1,27 @@
 #ifdef USE_MODULES
+#    ifndef __APPLE__
 import std;
 import std.compat;
+#    else
+#        include <coroutine>
+#        include <cstdlib>
+#        include <exception>
+#        include <system_error>
+#    endif
 import asio;
 #else
-#include <asio/ip/tcp.hpp>
-#include <asio/ip/address_v4.hpp>
-#include <asio/ssl/stream.hpp>
-#include <asio/ssl/error.hpp>
-#include <asio/awaitable.hpp>
-#include <asio/deferred.hpp>
-#include <asio/detached.hpp>
-#include <asio/buffer.hpp>
-#include <asio/this_coro.hpp>
-#include <asio/connect.hpp>
-#include <asio/co_spawn.hpp>
-#include <asio/io_context.hpp>
+#    include <asio/awaitable.hpp>
+#    include <asio/buffer.hpp>
+#    include <asio/co_spawn.hpp>
+#    include <asio/connect.hpp>
+#    include <asio/deferred.hpp>
+#    include <asio/detached.hpp>
+#    include <asio/io_context.hpp>
+#    include <asio/ip/address_v4.hpp>
+#    include <asio/ip/tcp.hpp>
+#    include <asio/ssl/error.hpp>
+#    include <asio/ssl/stream.hpp>
+#    include <asio/this_coro.hpp>
 #endif
 
 namespace bench {

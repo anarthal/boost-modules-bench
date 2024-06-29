@@ -1,0 +1,26 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "develop", "master" ]
+  pull_request:
+    branches: [ "develop" ]
+
+jobs:
+  build:
+
+    runs-on: macos-14
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install llvm-18
+      run: |
+        brew install llvm ninja codespell cmake ninja
+        export PATH="$(brew --prefix llvm@18)/bin:$PATH" && echo "PATH=$PATH" >> $GITHUB_ENV
+        export LDFLAGS="-L$(brew --prefix llvm@18)/lib/c++ $LDFLAGS" && echo "LDFLAGS=$LDFLAGS" >> $GITHUB_ENV
+        echo "CXX=clang++" >> $GITHUB_ENV
+        echo "CC=clang-18" >> $GITHUB_ENV
+
+    - name: Build
+      run: make
