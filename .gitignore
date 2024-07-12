@@ -1,2 +1,4 @@
+stagedir/
+build/
 __build/
 .vscode/
