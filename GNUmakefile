@@ -1,23 +1,38 @@
-export LLVM_PREFIX:=$(shell brew --prefix llvm@18)
+UNAME:=$(shell uname)
+ifeq (${UNAME},Darwin)
+  export GNU_PREFIX:=$(shell brew --prefix gcc@14)
+  export GNU_ROOT:=$(shell realpath ${GNU_PREFIX})
+  #TODO: export CXX:=g++-14
 
-export LDFLAGS:=-L${LLVM_PREFIX}/lib/c++ ${LDFLAGS}
-export PATH:=${LLVM_PREFIX}/bin:${PATH}
+  export LLVM_PREFIX:=$(shell brew --prefix llvm@18)
+  export LLVM_ROOT:=$(shell realpath ${LLVM_PREFIX})
+  export LDFLAGS+=-L${LLVM_ROOT}/lib/c++
+  export PATH:=${LLVM_ROOT}/bin:${PATH}
+  export CXX?=clang++
+else ifeq (${UNAME},Linux)
+  export LLVM_ROOT:=/usr/lib/llvm-17
+endif
+
 export CXXFLAGS:=-std=c++23
-export CXX:=clang++
-export CC:=clang-18
+export CMAKE_BUILD_TYPE:=Release
 
-.PHONY: all build install clean distclean
+BUILD_SHARED_LIBS?=YES
+
+.PHONY: all build install format clean distclean
 all: stagedir build
 	ninja -C build
 	cd build && ctest --verbose
 
 build: stagedir CMakeLists.txt
-	cmake -G Ninja -S . -B build -D CMAKE_PREFIX_PATH=stagedir #XXX --fresh #XXX --debug-find-pkg=Asio
+	cmake -G Ninja -S . -B build -D BUILD_SHARED_LIBS=$(BUILD_SHARED_LIBS) -D CMAKE_PREFIX_PATH=$(CURDIR)/stagedir --fresh #XXX --debug-find-pkg=Asio
 
 stagedir: asio-module/CMakeLists.txt GNUmakefile
 	cmake -G Ninja -S asio-module -B build/asio -D CMAKE_INSTALL_PREFIX=$(CURDIR)/stagedir --fresh
 	cmake --build build/asio
 	cmake --install build/asio # --prefix stagedir
+
+format:
+	cmake-format -i CMakeLists.txt asio-module/CMakeLists.txt asio-module/AsioConfig.cmake.in
 
 clean:
 	rm -rf build

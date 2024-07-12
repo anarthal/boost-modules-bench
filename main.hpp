@@ -1,5 +1,5 @@
 #ifdef USE_MODULES
-#    ifndef __APPLE__
+#    ifdef HAS_STDLIB_MODULES
 import std;
 import std.compat;
 #    else

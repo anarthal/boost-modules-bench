@@ -1,0 +1,77 @@
+---
+name: linux CI
+
+on:
+  push:
+    branches: ["develop", "master"]
+  pull_request:
+    branches: ["develop"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler:
+          - {cxx: "g++"}
+          - {cxx: "g++-14"}
+          - {cxx: "clang++"}
+          - {cxx: "clang++-18"}
+        # XXX type: [static, shared]
+        build_type: [Release]
+        cxx_std: [23]
+
+        # XXX include:
+        # XXX   - {type: static, build: NO}
+        # XXX   - {type: shared, build: YES}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Build Tools
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get update
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 18 || sudo ./llvm.sh 18 workaround
+          rm llvm.sh
+          sudo apt-get install -y --no-install-recommends ninja-build \
+            libc++-18-dev libc++abi-18-dev clang-tidy-18 libunwind-18-dev llvm-18 libfuzzer-18-dev
+          export LLVM_ROOT=/usr/lib/llvm-18 && echo "LLVM_ROOT=$LLVM_ROOT" >> $GITHUB_ENV
+          export CXX=${{matrix.compiler.cxx}} && echo "CXX=$CXX" >> $GITHUB_ENV
+          export CMAKE_BUILD_TYPE=${{matrix.build_type}} && echo "CMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE" >> $GITHUB_ENV
+          # XXX export BUILD_SHARED_LIBS=${{matrix.build}} && echo "BUILD_SHARED_LIBS=$BUILD_SHARED_LIBS" >> $GITHUB_ENV
+
+      - name: Create Build Environment
+        run: |
+          cmake --version
+          ninja --version
+          make
+          # NO! cmake -E make_directory ${{runner.workspace}}/build
+
+      # - name: Configure
+      #   working-directory: ${{runner.workspace}}/build
+      #   run: |
+      #     cmake -G Ninja \
+      #       -D CMAKE_CXX_COMPILER=${{matrix.compiler.cxx}} \
+      #       -D CMAKE_BUILD_TYPE=${{matrix.build_type}} \
+      #       -D CMAKE_CXX_STANDARD=${{matrix.cxx_std}} \
+      #       -D BUILD_SHARED_LIBS=${{matrix.build}} \
+      #       $GITHUB_WORKSPACE
+
+      # - name: Build
+      #   working-directory: ${{runner.workspace}}/build
+      #   run: |
+      #     cmake --build . --config ${{matrix.build_type}} -- -k999
+
+      # - name: Test
+      #   working-directory: ${{runner.workspace}}/build
+      #   run: ctest -C ${{matrix.build_type}} --timeout 60
+      #   env:
+      #     CTEST_OUTPUT_ON_FAILURE: True
