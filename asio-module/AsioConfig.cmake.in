@@ -6,23 +6,9 @@ function(add_asio_module NAME)
     set(ASIO_ROOT @CMAKE_INSTALL_PREFIX@)
     message(STATUS "ASIO_ROOT is: ${ASIO_ROOT}")
 
-    # if(PROJECT_IS_TOP_LEVEL)
-    #     include(CheckCXXSymbolExists)
-    #     check_cxx_symbol_exists(snprintf cstdio ASIO_HAS_SNPRINTF)
-    #     check_cxx_symbol_exists(sprintf_s cstdio ASIO_HAS_SECURE_RTL)
-    # endif()
-
-    # list(APPEND CPPdefinitions ASIO_NO_DEPRECATED ASIO_STANDALONE)
-    # if(ASIO_HAS_SECURE_RTL)
-    #     list(APPEND CPPdefinitions ASIO_HAS_SECURE_RTL)
-    # elseif(ASIO_HAS_SNPRINTF)
-    #     list(APPEND CPPdefinitions ASIO_HAS_SNPRINTF)
-    # endif()
-
     add_library(${NAME})
     target_include_directories(${NAME} PRIVATE ${ASIO_ROOT}/include)
     target_compile_features(${NAME} PUBLIC cxx_std_23)
-    #XXX target_compile_options(${NAME} PRIVATE -Wno-include-angled-in-module-purview)
 
     if(DEFINED CPPdefinitions)
         target_compile_definitions(${NAME} PUBLIC ${CPPdefinitions})
