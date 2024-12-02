@@ -1,20 +1,27 @@
 #ifdef USE_MODULES
+#    ifdef HAS_STDLIB_MODULES
 import std;
 import std.compat;
+#    else
+#        include <coroutine>
+#        include <cstdlib>
+#        include <exception>
+#        include <system_error>
+#    endif
 import asio;
 #else
-#include <asio/ip/tcp.hpp>
-#include <asio/ip/address_v4.hpp>
-#include <asio/ssl/stream.hpp>
-#include <asio/ssl/error.hpp>
-#include <asio/awaitable.hpp>
-#include <asio/deferred.hpp>
-#include <asio/detached.hpp>
-#include <asio/buffer.hpp>
-#include <asio/this_coro.hpp>
-#include <asio/connect.hpp>
-#include <asio/co_spawn.hpp>
-#include <asio/io_context.hpp>
+#    include <asio/awaitable.hpp>
+#    include <asio/buffer.hpp>
+#    include <asio/co_spawn.hpp>
+#    include <asio/connect.hpp>
+#    include <asio/deferred.hpp>
+#    include <asio/detached.hpp>
+#    include <asio/io_context.hpp>
+#    include <asio/ip/address_v4.hpp>
+#    include <asio/ip/tcp.hpp>
+#    include <asio/ssl/error.hpp>
+#    include <asio/ssl/stream.hpp>
+#    include <asio/this_coro.hpp>
 #endif
 
 namespace bench {
@@ -26,7 +33,7 @@ using std::error_code;
 
 inline void fail(error_code ec, char const* what)
 {
-    if(ec == net::ssl::error::stream_truncated)
+    if(ec == ssl::error::make_error_code(net::ssl::error::stream_truncated))
         return;
     exit(1);
 }
@@ -34,7 +41,7 @@ inline void fail(error_code ec, char const* what)
 inline net::awaitable<void> do_session(tcp::socket client_sock)
 {
     char buff [4096] {};
-    auto ex = co_await net::this_coro::executor;
+    // TODO(CK): Not used? auto ex = co_await net::this_coro::executor;
 
     ssl::context ctx {ssl::context::tls_client};
     ssl::stream<tcp::socket> stream {std::move(client_sock), ctx};
@@ -77,7 +84,7 @@ inline net::awaitable<void> do_listen()
     {
         tcp::socket socket{ex};
         co_await acceptor.async_accept(socket, net::deferred);
-        net::co_spawn(ex, [s = std::move(socket)] mutable {
+        net::co_spawn(ex, [s = std::move(socket)]() mutable {
             return do_session(std::move(s));
         }, net::detached);
     }

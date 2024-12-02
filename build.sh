@@ -1,6 +1,8 @@
 #!/bin/bash
 
 set -e
+set -u
+set -x
 
 this_dir=$(realpath $(dirname $0))
 asio_installed=$HOME/asio-installed
@@ -16,5 +18,6 @@ make install
 # Build the code
 mkdir -p $this_dir/__build
 cd $this_dir/__build
-cmake -DCMAKE_PREFIX_PATH=$asio_installed -DCMAKE_CXX_COMPILER=clang++-19 -G Ninja ..
+cmake -DCMAKE_PREFIX_PATH=$asio_installed -DCMAKE_CXX_COMPILER=clang++ -G Ninja ..
 ninja
+ctest --verbose
