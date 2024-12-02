@@ -2,15 +2,16 @@ UNAME:=$(shell uname)
 ifeq (${UNAME},Darwin)
   export GNU_PREFIX:=$(shell brew --prefix gcc@14)
   export GNU_ROOT:=$(shell realpath ${GNU_PREFIX})
-  #TODO: export CXX:=g++-14
+  # export CXX:=g++-14
+  # export LDFLAGS:=
 
-  export LLVM_PREFIX:=$(shell brew --prefix llvm@18)
+  export LLVM_PREFIX:=$(shell brew --prefix llvm@19)
   export LLVM_ROOT:=$(shell realpath ${LLVM_PREFIX})
-  export LDFLAGS+=-L${LLVM_ROOT}/lib/c++
+  export LDFLAGS?=-L${LLVM_ROOT}/lib/c++
   export PATH:=${LLVM_ROOT}/bin:${PATH}
   export CXX?=clang++
 else ifeq (${UNAME},Linux)
-  export LLVM_ROOT:=/usr/lib/llvm-17
+  export LLVM_ROOT:=/usr/lib/llvm-19
 endif
 
 export CXXFLAGS:=-std=c++23

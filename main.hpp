@@ -33,7 +33,7 @@ using std::error_code;
 
 inline void fail(error_code ec, char const* what)
 {
-    if(ec == net::ssl::error::stream_truncated)
+    if(ec == ssl::error::make_error_code(net::ssl::error::stream_truncated))
         return;
     exit(1);
 }
@@ -41,7 +41,7 @@ inline void fail(error_code ec, char const* what)
 inline net::awaitable<void> do_session(tcp::socket client_sock)
 {
     char buff [4096] {};
-    auto ex = co_await net::this_coro::executor;
+    // TODO(CK): Not used? auto ex = co_await net::this_coro::executor;
 
     ssl::context ctx {ssl::context::tls_client};
     ssl::stream<tcp::socket> stream {std::move(client_sock), ctx};
@@ -84,7 +84,7 @@ inline net::awaitable<void> do_listen()
     {
         tcp::socket socket{ex};
         co_await acceptor.async_accept(socket, net::deferred);
-        net::co_spawn(ex, [s = std::move(socket)] mutable {
+        net::co_spawn(ex, [s = std::move(socket)]() mutable {
             return do_session(std::move(s));
         }, net::detached);
     }

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28.4...3.30)
+cmake_minimum_required(VERSION 3.28.4...3.31)
 project(asio_module LANGUAGES CXX)
 set(CMAKE_INSTALL_MESSAGE NEVER)
 
